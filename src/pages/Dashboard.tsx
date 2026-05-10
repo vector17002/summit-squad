@@ -116,7 +116,7 @@ export default function Dashboard() {
       <div className="dashboard-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem' }}>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: '2rem', color: 'var(--text)' }}>Trips Dashboard</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Manage your trips and <i>bhakchodis</i> with the <b>Summit Squad</b>.</p>
+          <p style={{ color: 'var(--text-muted)' }}>Manage your trips and <i>bhakchodis</i> with the <b>Trippaglu</b>.</p>
         </div>
         <Link to="/new" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
           <Plus size={20} /> New Trip

@@ -1,6 +1,6 @@
-# Summit Squad
+# Trippaglu
 
-Summit Squad is a modern, mobile-first trip planning application designed for adventurers and their friends.
+Trippaglu is a modern, mobile-first trip planning application designed for adventurers and their friends.
 
 ## Features
 - **Trip Management**: Organize trips into Ongoing, Upcoming, Completed, and Planned (Ideas).

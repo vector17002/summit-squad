@@ -18,7 +18,7 @@ function AppContent() {
           <div className="header-content">
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Plane size={24} color="var(--primary)" />
-              <h1>Summit Squad</h1>
+              <h1>Trippaglu</h1>
             </Link>
             <nav style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <button 

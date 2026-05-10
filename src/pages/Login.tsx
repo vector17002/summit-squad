@@ -44,12 +44,12 @@ export default function Login() {
           <Plane size={48} color="var(--primary)" />
         </div>
         <h1 style={{ marginBottom: '0.5rem', color: 'var(--text)' }}>
-          {mode === 'login' ? 'Welcome Back' : 'Join Summit Squad'}
+          {mode === 'login' ? 'Welcome Back' : 'Join Trippaglu'}
         </h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
           {mode === 'login' 
             ? 'Sign in to access your trips.' 
-            : 'Join Summit Squad to start planning.'}
+            : 'Join Trippaglu to start planning.'}
         </p>
 
         <form onSubmit={handleAuth}>
