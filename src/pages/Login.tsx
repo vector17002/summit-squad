@@ -29,8 +29,9 @@ export default function Login() {
         });
         if (error) throw error;
       }
-    } catch (error: any) {
-      setMessage(`Error: ${error.message}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      setMessage(`Error: ${msg}`);
     } finally {
       setLoading(false);
     }

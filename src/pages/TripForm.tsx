@@ -62,7 +62,7 @@ export default function TripForm() {
       }
       loadTrip();
     }
-  }, [id]);
+  }, [id, navigate]);
 
   const handleAddContributor = () => setContributors([...contributors, { id: crypto.randomUUID(), name: '', amount: 0 }]);
   const handleRemoveContributor = (cid: string) => setContributors(contributors.filter(c => c.id !== cid));

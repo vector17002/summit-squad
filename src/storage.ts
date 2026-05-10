@@ -1,5 +1,5 @@
 import { supabase } from './lib/supabase';
-import type { Trip } from './types';
+import type { Trip, Contributor, MoneyHandler, Expense, Invitation } from './types';
 
 export const getTrips = async (): Promise<Trip[]> => {
   const { data, error } = await supabase
@@ -32,7 +32,7 @@ export const saveTrip = async (trip: Trip) => {
 
   const existing = await getTripById(trip.id);
 
-  const payload: any = {
+  const payload: Record<string, unknown> = {
     id: trip.id,
     title: trip.title,
     destination: trip.destination,
@@ -62,7 +62,7 @@ export const saveTrip = async (trip: Trip) => {
   if (error) throw error;
 };
 
-export const updateTripFinances = async (tripId: string, expenditure: number, contributors: any[], moneyHandlers: any[], expenses: any[]) => {
+export const updateTripFinances = async (tripId: string, expenditure: number, contributors: Contributor[], moneyHandlers: MoneyHandler[], expenses: Expense[]) => {
   const { error } = await supabase
     .from('trips')
     .update({
@@ -124,7 +124,7 @@ export const inviteUser = async (tripId: string, email: string, role: string = '
   if (error) throw error;
 };
 
-export const getInvitations = async (tripId: string): Promise<any[]> => {
+export const getInvitations = async (tripId: string): Promise<Invitation[]> => {
   const { data, error } = await supabase
     .from('invitations')
     .select('*')

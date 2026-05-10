@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import type { Trip, Expense, MoneyHandler, Invitation, ParticipantRole } from '../types';
-import { getTripById, deleteTrip, inviteUser, updateTripFinances, getUserEssentialStates, toggleUserEssential, isUserInvited, getInvitations, updateInvitationRole, removeInvitation } from '../storage';
+import type { Trip, Contributor, Expense, MoneyHandler, Invitation, ParticipantRole } from '../types';
+import { getTripById, deleteTrip, inviteUser, updateTripFinances, getUserEssentialStates, toggleUserEssential, getInvitations, updateInvitationRole, removeInvitation } from '../storage';
 import { useAuth } from '../contexts/AuthContext';
 import { MapPin, Calendar, Share2, Trash2, ArrowLeft, Clock, Loader2, UserPlus, CheckSquare, Square, Link as LinkIcon, ExternalLink, Edit2, IndianRupee, Users, AlertCircle, Save, X, Receipt, History, Shield, ShieldCheck, UserMinus } from 'lucide-react';
 
@@ -15,13 +15,12 @@ export default function TripPreview() {
   const [inviteRole, setInviteRole] = useState<ParticipantRole>('participant');
   const [isInviting, setIsInviting] = useState(false);
   const [userEssentials, setUserEssentials] = useState<Record<string, boolean>>({});
-  const [isInvited, setIsInvited] = useState(false);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Finance Edit Mode
   const [isEditingFinances, setIsEditingFinances] = useState(false);
-  const [tempContributors, setTempContributors] = useState<any[]>([]);
+  const [tempContributors, setTempContributors] = useState<Contributor[]>([]);
   const [tempHandlers, setTempHandlers] = useState<MoneyHandler[]>([]);
   const [tempExpenses, setTempExpenses] = useState<Expense[]>([]);
 
@@ -42,7 +41,6 @@ export default function TripPreview() {
 
           const isOwner = found.user_id === user?.id;
           const userInvite = invites.find(i => i.invited_email === user?.email);
-          setIsInvited(!!userInvite);
           setIsAdmin(isOwner || userInvite?.role === 'admin');
         }
       }
@@ -58,8 +56,8 @@ export default function TripPreview() {
     setUserEssentials(prev => ({ ...prev, [essentialId]: newStatus }));
     try {
       await toggleUserEssential(trip.id, essentialId, newStatus);
-    } catch (err) {
-      console.error('Failed to update essential state', err);
+    } catch {
+      // Rollback optimistic update on failure
       setUserEssentials(prev => ({ ...prev, [essentialId]: currentStatus }));
     }
   };
@@ -71,9 +69,8 @@ export default function TripPreview() {
       await updateTripFinances(trip.id, totalSpent, tempContributors, tempHandlers, tempExpenses);
       setTrip({ ...trip, expenditure: totalSpent, contributors: tempContributors, moneyHandlers: tempHandlers, expenses: tempExpenses });
       setIsEditingFinances(false);
-    } catch (err) {
+    } catch {
       alert('Failed to update finances.');
-      console.error(err);
     }
   };
 
@@ -81,7 +78,7 @@ export default function TripPreview() {
     try {
       await updateInvitationRole(inviteId, role);
       setInvitations(invitations.map(i => i.id === inviteId ? { ...i, role } : i));
-    } catch (err) {
+    } catch {
       alert('Failed to update role');
     }
   };
@@ -91,7 +88,7 @@ export default function TripPreview() {
     try {
       await removeInvitation(inviteId);
       setInvitations(invitations.filter(i => i.id !== inviteId));
-    } catch (err) {
+    } catch {
       alert('Failed to remove participant');
     }
   };
@@ -164,7 +161,7 @@ export default function TripPreview() {
                 setInvitations(updatedInvites);
                 alert(`Invitation sent to ${inviteEmail}`);
                 setInviteEmail('');
-              } catch (err) { alert('Failed'); }
+              } catch { alert('Failed'); }
               setIsInviting(false);
             }} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <input type="email" placeholder="friend@example.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
