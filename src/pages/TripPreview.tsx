@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import type { Trip, Contributor, Expense, MoneyHandler, Invitation, ParticipantRole, Profile } from '../types';
-import { getTripById, deleteTrip, inviteUser, updateTripFinances, getUserEssentialStates, toggleUserEssential, getInvitations, updateInvitationRole, removeInvitation, getProfiles } from '../storage';
+import { getTripById, deleteTrip, inviteUser, updateTripFinances, getUserEssentialStates, toggleUserEssential, getInvitations, updateInvitationRole, removeInvitation, getProfiles, leaveTrip } from '../storage';
 import { useAuth } from '../contexts/AuthContext';
-import { MapPin, Calendar, Share2, Trash2, ArrowLeft, Clock, Loader2, UserPlus, CheckSquare, Square, Link as LinkIcon, ExternalLink, Edit2, IndianRupee, Users, AlertCircle, Save, X, Receipt, History, Shield, ShieldCheck, UserMinus, Search } from 'lucide-react';
+import { MapPin, Calendar, Share2, Trash2, ArrowLeft, Clock, Loader2, UserPlus, CheckSquare, Square, Link as LinkIcon, ExternalLink, Edit2, IndianRupee, Users, AlertCircle, Save, X, Receipt, History, Shield, ShieldCheck, UserMinus, Search, LogOut } from 'lucide-react';
 
 export default function TripPreview() {
   const { id } = useParams<{ id: string }>();
@@ -113,6 +113,17 @@ export default function TripPreview() {
     setIsInviting(false);
   };
 
+  const handleLeaveTrip = async () => {
+    if (!trip) return;
+    if (!confirm('Are you sure you want to leave this trip?')) return;
+    try {
+      await leaveTrip(trip.id);
+      navigate('/');
+    } catch {
+      alert('Failed to leave trip');
+    }
+  };
+
   if (loading) return (
     <div className="container" style={{ textAlign: 'center', padding: '4rem' }}>
       <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto' }} />
@@ -147,6 +158,9 @@ export default function TripPreview() {
               <Link to={`/edit/${trip.id}`} className="btn btn-outline"><Edit2 size={20} /> Edit</Link>
               {isOwner && (
                 <button onClick={async () => { if (confirm('Delete trip?')) { await deleteTrip(trip.id); navigate('/'); } }} className="btn btn-outline" style={{ color: '#ef4444' }}><Trash2 size={20} /></button>
+              )}
+              {!isOwner && (
+                <button onClick={handleLeaveTrip} className="btn btn-outline btn-sm" style={{ color: '#ef4444' }}><LogOut size={16} /> Leave Trip</button>
               )}
             </>
           )}

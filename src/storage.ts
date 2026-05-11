@@ -125,6 +125,34 @@ export const getTripById = async (id: string): Promise<Trip | undefined> => {
   } : undefined;
 };
 
+export const joinTrip = async (tripId: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('invitations')
+    .insert({
+      trip_id: tripId,
+      invited_email: user.email,
+      role: 'participant'
+    });
+
+  if (error) throw error;
+};
+
+export const leaveTrip = async (tripId: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('invitations')
+    .delete()
+    .eq('trip_id', tripId)
+    .eq('invited_email', user.email);
+
+  if (error) throw error;
+};
+
 export const inviteUser = async (tripId: string, email: string, role: string = 'participant') => {
   const { error } = await supabase
     .from('invitations')
@@ -145,6 +173,22 @@ export const getInvitations = async (tripId: string): Promise<Invitation[]> => {
 
   if (error) {
     console.error('Error fetching invitations:', error);
+    return [];
+  }
+  return data || [];
+};
+
+export const getMyInvitations = async (): Promise<Invitation[]> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .eq('invited_email', user.email);
+
+  if (error) {
+    console.error('Error fetching my invitations:', error);
     return [];
   }
   return data || [];

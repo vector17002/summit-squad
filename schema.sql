@@ -105,11 +105,14 @@ ALTER TABLE public.user_essentials ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Owners manage their trips" ON public.trips FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Invited users view trips" ON public.trips FOR SELECT USING (is_invited(id));
 CREATE POLICY "Admins update trips" ON public.trips FOR UPDATE USING (is_admin(id)) WITH CHECK (is_admin(id));
+CREATE POLICY "Anyone can view planned trips" ON public.trips FOR SELECT USING (status = 'planned');
 CREATE POLICY "Admin manage all trips" ON public.trips FOR ALL USING (auth.jwt()->>'email' = 'anshk17002@gmail.com');
 
 -- Invitations Policies
 CREATE POLICY "Owners manage invitations" ON public.invitations FOR ALL USING (is_trip_owner(trip_id));
+CREATE POLICY "Users can join trips" ON public.invitations FOR INSERT WITH CHECK (invited_email = auth.jwt()->>'email');
 CREATE POLICY "Invited users view invitations" ON public.invitations FOR SELECT USING (invited_email = auth.jwt()->>'email');
+CREATE POLICY "Users can leave trips" ON public.invitations FOR DELETE USING (invited_email = auth.jwt()->>'email');
 CREATE POLICY "Admin manage all invitations" ON public.invitations FOR ALL USING (auth.jwt()->>'email' = 'anshk17002@gmail.com');
 
 -- User Essentials Policies
