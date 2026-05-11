@@ -294,11 +294,19 @@ export default function TripForm() {
           </div>
           {days.map((day, dIdx) => (
             <div key={dIdx} className="card" style={{ marginBottom: '1rem', background: 'var(--bg)' }}>
-              <div className="form-group"><label>Day Date / Title</label><input value={day.date} onChange={ev => {
+              <div className="form-group">
+                <label>Day Date</label>
+                <input 
+                  type="date" 
+                  value={day.date} 
+                  onChange={ev => {
                     const newDays = [...days];
                     newDays[dIdx].date = ev.target.value;
                     setDays(newDays);
-                  }} placeholder="e.g. Day 1" /></div>
+                  }} 
+                  required 
+                />
+              </div>
               {day.activities.map((activity) => (
                 <div key={activity.id} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                   <input style={{ width: '120px' }} type="time" value={activity.time} onChange={ev => {

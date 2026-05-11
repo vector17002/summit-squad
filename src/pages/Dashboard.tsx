@@ -86,11 +86,13 @@ export default function Dashboard() {
     );
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const invitedTripIds = myInvitations.map(i => i.trip_id);
   const myTrips = trips.filter(t => t.user_id === user?.id || invitedTripIds.includes(t.id));
   
-  const upcomingTrips = myTrips.filter(t => (t.status === 'confirmed' || !t.status) && t.startDate && t.startDate > today);
+  // Trips that are either in the future or currently happening
+  const upcomingTrips = myTrips.filter(t => (t.status === 'confirmed' || !t.status) && t.startDate && t.endDate && t.endDate >= today);
   const completedTrips = myTrips.filter(t => (t.status === 'confirmed' || !t.status) && t.endDate && t.endDate < today);
   const plannedTrips = myTrips.filter(t => t.status === 'planned');
   const communityTrips = trips.filter(t => t.status === 'planned' && t.user_id !== user?.id && !invitedTripIds.includes(t.id));
@@ -110,20 +112,39 @@ export default function Dashboard() {
             const isOwner = user && trip.user_id === user.id;
             const isInvited = invitedTripIds.includes(trip.id);
             const canOpen = isOwner || isInvited;
+            const isClosed = isCompleted && !isOwner;
+            const canClickCard = canOpen && !isClosed;
+
+            // Find today's plan (direct match or Day X fallback)
+            let todaysPlan = trip.days?.find(d => d.date === today);
+            
+            if (!todaysPlan && trip.startDate) {
+              const start = new Date(trip.startDate + 'T00:00:00');
+              const curr = new Date(today + 'T00:00:00');
+              const diffTime = curr.getTime() - start.getTime();
+              const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+              if (diffDays >= 1) {
+                todaysPlan = trip.days?.find(d => 
+                  d.date?.toLowerCase() === `day ${diffDays}` || 
+                  d.date?.toLowerCase() === `day${diffDays}`
+                );
+              }
+            }
 
             return (
               <div
                 key={trip.id}
-                onClick={() => canOpen ? navigate(`/trip/${trip.id}`) : null}
+                onClick={() => canClickCard ? navigate(`/trip/${trip.id}`) : null}
                 className="card"
                 style={{
-                  transition: 'transform 0.2s',
-                  borderLeft: '1px solid var(--border)',
-                  cursor: canOpen ? 'pointer' : 'default',
+                  transition: 'all 0.2s',
+                  borderLeft: isClosed ? '4px solid var(--border)' : '1px solid var(--border)',
+                  cursor: canClickCard ? 'pointer' : 'default',
                   position: 'relative',
                   opacity: canOpen ? 1 : 0.9,
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  padding: isClosed ? '1rem' : '1.25rem'
                 }}
               >
                 {!canOpen && isCompleted && (
@@ -132,7 +153,7 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {user && isInvited && !isOwner && !isCommunity && (
+                {user && isInvited && !isOwner && !isCommunity && !isCompleted && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -141,7 +162,7 @@ export default function Dashboard() {
                     className="btn btn-outline btn-sm"
                     style={{ 
                       position: 'absolute', 
-                      top: '1rem', 
+                      top: isClosed ? '0.75rem' : '1rem', 
                       right: '1rem', 
                       color: '#ef4444', 
                       borderColor: '#ef4444', 
@@ -157,6 +178,7 @@ export default function Dashboard() {
                 
                 <h3 style={{ 
                   marginBottom: '0.5rem', 
+                  fontSize: isClosed ? '1rem' : '1.17rem',
                   paddingRight: ((!canOpen && isCompleted) || (user && isInvited && !isOwner && !isCommunity)) ? '5rem' : '0' 
                 }}>{trip.title}</h3>
 
@@ -171,14 +193,37 @@ export default function Dashboard() {
                     : 'Dates not set'}
                 </div>
 
-                {trip.description && (
+                {todaysPlan && todaysPlan.activities.length > 0 && (
+                  <div style={{ 
+                    background: 'var(--bg)', 
+                    padding: '0.75rem', 
+                    borderRadius: '8px', 
+                    marginBottom: '1rem',
+                    border: '1px solid var(--border)',
+                    borderLeft: '3px solid var(--primary)'
+                  }}>
+                    <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <Clock size={12} /> Today's Itinerary
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      {todaysPlan.activities.map(act => (
+                        <div key={act.id} style={{ fontSize: '0.8rem', display: 'flex', gap: '0.5rem' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>{act.time}</span>
+                          <span style={{ color: 'var(--text-muted)' }}>{act.description}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!isClosed && trip.description && (
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {trip.description}
                   </p>
                 )}
 
                 {trip.mediaLinks && trip.mediaLinks.length > 0 && (
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: isClosed ? '0' : '1rem' }}>
                     {trip.mediaLinks.map(link => (
                       <a
                         key={link.id}
@@ -302,7 +347,7 @@ export default function Dashboard() {
 
       {user && (
         <>
-          {renderSection('Upcoming', <Clock size={24} color="var(--primary)" />, upcomingTrips)}
+          {renderSection('Upcoming & Ongoing', <Clock size={24} color="var(--primary)" />, upcomingTrips)}
           {renderSection('Completed', <CheckCircle size={24} color="var(--text-muted)" />, completedTrips)}
           {renderSection('My Planned Trips', <Lightbulb size={24} color="#f59e0b" />, plannedTrips)}
         </>

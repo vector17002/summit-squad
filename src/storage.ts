@@ -34,6 +34,7 @@ export const getTrips = async (): Promise<Trip[]> => {
     moneyHandlers: trip.money_handlers || [],
     expenses: trip.expenses || [],
     contributors: trip.contributors || [],
+    days: trip.days || [],
     essentials: trip.essentials || [],
     mediaLinks: trip.media_links || []
   }));
@@ -120,6 +121,7 @@ export const getTripById = async (id: string): Promise<Trip | undefined> => {
     moneyHandlers: data.money_handlers || [],
     expenses: data.expenses || [],
     contributors: data.contributors || [],
+    days: data.days || [],
     essentials: data.essentials || [],
     mediaLinks: data.media_links || []
   } : undefined;

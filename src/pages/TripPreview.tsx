@@ -506,7 +506,11 @@ export default function TripPreview() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               {trip.days.map((day, idx) => (
                 <div key={idx}>
-                  <h3 style={{ marginBottom: '1rem', color: 'var(--primary)', borderBottom: '2px solid var(--primary)', display: 'inline-block' }}>{day.date || `Day ${idx + 1}`}</h3>
+                  <h3 style={{ marginBottom: '1rem', color: 'var(--primary)', borderBottom: '2px solid var(--primary)', display: 'inline-block' }}>
+                    {day.date && !isNaN(Date.parse(day.date)) 
+                      ? new Date(day.date).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
+                      : (day.date || `Day ${idx + 1}`)}
+                  </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                     {day.activities.map((activity) => (
                       <div key={activity.id} style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
