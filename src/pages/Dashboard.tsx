@@ -61,22 +61,22 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: title === 'Completed' ? '0.75rem' : '0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: (title === 'Completed' || title === 'Upcoming') ? '0.75rem' : '0' }}>
                 <Calendar size={16} color="var(--primary)" />
                 {trip.startDate && trip.endDate
                   ? `${new Date(trip.startDate).toLocaleDateString()} - ${new Date(trip.endDate).toLocaleDateString()}`
                   : 'Dates not set'}
               </div>
 
-              {title === 'Completed' && (
+              {(title === 'Completed' || title === 'Upcoming') && (
                 <>
-                  {trip.description && (
+                  {title === 'Completed' && trip.description && (
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {trip.description}
                     </p>
                   )}
                   {trip.mediaLinks && trip.mediaLinks.length > 0 && (
-                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: title === 'Upcoming' ? '0.75rem' : '0' }}>
                       {trip.mediaLinks.map(link => (
                         <a
                           key={link.id}

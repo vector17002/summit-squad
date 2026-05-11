@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import type { Trip, Contributor, Expense, MoneyHandler, Invitation, ParticipantRole } from '../types';
-import { getTripById, deleteTrip, inviteUser, updateTripFinances, getUserEssentialStates, toggleUserEssential, getInvitations, updateInvitationRole, removeInvitation } from '../storage';
+import type { Trip, Contributor, Expense, MoneyHandler, Invitation, ParticipantRole, Profile } from '../types';
+import { getTripById, deleteTrip, inviteUser, updateTripFinances, getUserEssentialStates, toggleUserEssential, getInvitations, updateInvitationRole, removeInvitation, getProfiles } from '../storage';
 import { useAuth } from '../contexts/AuthContext';
-import { MapPin, Calendar, Share2, Trash2, ArrowLeft, Clock, Loader2, UserPlus, CheckSquare, Square, Link as LinkIcon, ExternalLink, Edit2, IndianRupee, Users, AlertCircle, Save, X, Receipt, History, Shield, ShieldCheck, UserMinus } from 'lucide-react';
+import { MapPin, Calendar, Share2, Trash2, ArrowLeft, Clock, Loader2, UserPlus, CheckSquare, Square, Link as LinkIcon, ExternalLink, Edit2, IndianRupee, Users, AlertCircle, Save, X, Receipt, History, Shield, ShieldCheck, UserMinus, Search } from 'lucide-react';
 
 export default function TripPreview() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +17,8 @@ export default function TripPreview() {
   const [userEssentials, setUserEssentials] = useState<Record<string, boolean>>({});
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
+  const [userSearch, setUserSearch] = useState('');
 
   // Finance Edit Mode
   const [isEditingFinances, setIsEditingFinances] = useState(false);
@@ -42,6 +44,11 @@ export default function TripPreview() {
           const isOwner = found.user_id === user?.id;
           const userInvite = invites.find(i => i.invited_email === user?.email);
           setIsAdmin(isOwner || userInvite?.role === 'admin');
+
+          if (isOwner || (userInvite?.role === 'admin')) {
+            const profiles = await getProfiles();
+            setAllProfiles(profiles.filter(p => p.id !== user?.id));
+          }
         }
       }
       setLoading(false);
@@ -91,6 +98,19 @@ export default function TripPreview() {
     } catch {
       alert('Failed to remove participant');
     }
+  };
+
+  const handleQuickInvite = async (email: string) => {
+    if (!trip) return;
+    setIsInviting(true);
+    try {
+      await inviteUser(trip.id, email, 'participant');
+      const updatedInvites = await getInvitations(trip.id);
+      setInvitations(updatedInvites);
+    } catch {
+      alert('Failed to add user');
+    }
+    setIsInviting(false);
   };
 
   if (loading) return (
@@ -173,6 +193,53 @@ export default function TripPreview() {
                 <button type="submit" className="btn btn-primary" disabled={isInviting} style={{ flex: 1 }}><UserPlus size={18} /> {isInviting ? 'Inviting...' : 'Invite'}</button>
               </div>
             </form>
+          </div>
+        )}
+
+        {isAdmin && allProfiles.length > 0 && (
+          <div className="card" style={{ background: 'var(--bg)' }}>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Search size={20} /> Discover Users</h3>
+            <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search by name or email..." 
+                  value={userSearch} 
+                  onChange={(e) => setUserSearch(e.target.value)} 
+                  style={{ paddingLeft: '35px', fontSize: '0.9rem' }}
+                />
+              </div>
+            </div>
+            <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {allProfiles
+                .filter(p => {
+                  const searchMatch = p.display_name.toLowerCase().includes(userSearch.toLowerCase()) || p.email.toLowerCase().includes(userSearch.toLowerCase());
+                  const alreadyInvited = invitations.some(i => i.invited_email === p.email);
+                  return searchMatch && !alreadyInvited;
+                })
+                .map(profile => (
+                  <div key={profile.id} className="participant-item" style={{ marginBottom: 0, padding: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.8rem' }}>
+                        {profile.display_name[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{profile.display_name}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.email}</div>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => handleQuickInvite(profile.email)} 
+                      className="btn btn-primary btn-sm" 
+                      style={{ padding: '0.25rem 0.5rem' }}
+                      disabled={isInviting}
+                    >
+                      <UserPlus size={14} /> Add
+                    </button>
+                  </div>
+                ))}
+            </div>
           </div>
         )}
 

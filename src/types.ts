@@ -51,6 +51,13 @@ export interface Invitation {
   created_at: string;
 }
 
+export interface Profile {
+  id: string;
+  email: string;
+  display_name: string;
+  avatar_url?: string;
+}
+
 export interface Trip {
   id: string;
   user_id?: string;

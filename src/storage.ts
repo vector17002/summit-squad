@@ -1,5 +1,18 @@
 import { supabase } from './lib/supabase';
-import type { Trip, Contributor, MoneyHandler, Expense, Invitation } from './types';
+import type { Trip, Contributor, MoneyHandler, Expense, Invitation, Profile } from './types';
+
+export const getProfiles = async (): Promise<Profile[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('display_name', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching profiles:', error);
+    return [];
+  }
+  return data || [];
+};
 
 export const getTrips = async (): Promise<Trip[]> => {
   const { data, error } = await supabase

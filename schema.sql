@@ -114,3 +114,37 @@ CREATE POLICY "Admin manage all invitations" ON public.invitations FOR ALL USING
 
 -- User Essentials Policies
 CREATE POLICY "Users manage their own states" ON public.user_essentials FOR ALL USING (auth.uid() = user_id);
+
+-- 5. Profiles Table (for listing users)
+CREATE TABLE public.profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
+  email text UNIQUE NOT NULL,
+  display_name text,
+  avatar_url text,
+  updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+-- Enable RLS on Profiles
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Profiles Policies
+CREATE POLICY "Profiles are viewable by authenticated users" ON public.profiles FOR SELECT USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Trigger to create profile on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, display_name)
+  VALUES (new.id, new.email, split_part(new.email, '@', 1));
+  RETURN new;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
