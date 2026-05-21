@@ -72,9 +72,17 @@ export default function TripPreview() {
   const handleSaveFinances = async () => {
     if (!trip) return;
     const totalSpent = tempExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const newTotalBudget = tempContributors.reduce((sum, c) => sum + (c.amount || 0), 0);
     try {
-      await updateTripFinances(trip.id, totalSpent, tempContributors, tempHandlers, tempExpenses);
-      setTrip({ ...trip, expenditure: totalSpent, contributors: tempContributors, moneyHandlers: tempHandlers, expenses: tempExpenses });
+      await updateTripFinances(trip.id, newTotalBudget, totalSpent, tempContributors, tempHandlers, tempExpenses);
+      setTrip({ 
+        ...trip, 
+        totalBudget: newTotalBudget,
+        expenditure: totalSpent, 
+        contributors: tempContributors, 
+        moneyHandlers: tempHandlers, 
+        expenses: tempExpenses 
+      });
       setIsEditingFinances(false);
     } catch {
       alert('Failed to update finances.');

@@ -76,10 +76,11 @@ export const saveTrip = async (trip: Trip) => {
   if (error) throw error;
 };
 
-export const updateTripFinances = async (tripId: string, expenditure: number, contributors: Contributor[], moneyHandlers: MoneyHandler[], expenses: Expense[]) => {
+export const updateTripFinances = async (tripId: string, totalBudget: number, expenditure: number, contributors: Contributor[], moneyHandlers: MoneyHandler[], expenses: Expense[]) => {
   const { error } = await supabase
     .from('trips')
     .update({
+      total_budget: totalBudget,
       expenditure,
       contributors,
       money_handlers: moneyHandlers,
