@@ -71,6 +71,11 @@ export default function TripForm() {
   const handleRemoveMoneyHandler = (mhid: string) => setMoneyHandlers(moneyHandlers.filter(mh => mh.id !== mhid));
 
   const handleAddDay = () => setDays([...days, { date: '', activities: [] }]);
+  const handleRemoveDay = (index: number) => {
+    if (confirm('Are you sure you want to remove this entire day and all its activities?')) {
+      setDays(days.filter((_, i) => i !== index));
+    }
+  };
   const handleAddActivity = (dayIndex: number) => {
     const newDays = [...days];
     newDays[dayIndex].activities.push({ id: crypto.randomUUID(), time: '', description: '' });
@@ -294,18 +299,23 @@ export default function TripForm() {
           </div>
           {days.map((day, dIdx) => (
             <div key={dIdx} className="card" style={{ marginBottom: '1rem', background: 'var(--bg)' }}>
-              <div className="form-group">
-                <label>Day Date</label>
-                <input 
-                  type="date" 
-                  value={day.date} 
-                  onChange={ev => {
-                    const newDays = [...days];
-                    newDays[dIdx].date = ev.target.value;
-                    setDays(newDays);
-                  }} 
-                  required 
-                />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                  <label>Day Date</label>
+                  <input 
+                    type="date" 
+                    value={day.date} 
+                    onChange={ev => {
+                      const newDays = [...days];
+                      newDays[dIdx].date = ev.target.value;
+                      setDays(newDays);
+                    }} 
+                    required 
+                  />
+                </div>
+                <button type="button" onClick={() => handleRemoveDay(dIdx)} style={{ color: '#ef4444', marginTop: '1.5rem', marginLeft: '0.5rem' }}>
+                  <Trash2 size={20} />
+                </button>
               </div>
               {day.activities.map((activity) => (
                 <div key={activity.id} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
